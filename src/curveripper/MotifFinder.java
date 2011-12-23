@@ -7,7 +7,6 @@ package curveripper;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 import java.util.SortedSet;
 import javax.imageio.ImageIO;
 
@@ -94,7 +93,7 @@ public class MotifFinder extends Thread
             try
             {
                 CurvePosition pos = findMotif(request);
-                //System.out.println("[" + DateUtils.now() + "] Motif@" + pos.getPosX() + " x " + pos.getPosY() + " in file " + request.getNumber());
+                System.out.println("[" + DateUtils.now() + "] Motif@" + pos.getPosX() + " x " + pos.getPosY() + " in file " + request.getNumber());
                 synchronized (posSet)
                 {
                     posSet.add(pos);
@@ -102,7 +101,7 @@ public class MotifFinder extends Thread
             }
             catch (MotifException ex)
             {
-                //System.out.println(ex.getMessage());
+                System.out.println(ex.getMessage());
             }
         }
         boss.notifyDeath(this.getName());

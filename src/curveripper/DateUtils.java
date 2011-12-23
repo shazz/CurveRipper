@@ -23,9 +23,4 @@ public class DateUtils
         return sdf.format(cal.getTime());
 
     }
-
-    public static void main(String arg[])
-    {
-        System.out.println("Now : " + DateUtils.now());
-    }
 }

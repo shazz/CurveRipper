@@ -50,7 +50,7 @@ public class MotifFinder extends Thread
                     }
                 }
             }
-            throw new MotifException("No motif found in image " + request.getNumber());
+            throw new MotifException("[" + DateUtils.now() + "] No motif found in image " + request.getNumber());
         }
         catch (IOException ex)
         {
@@ -93,7 +93,7 @@ public class MotifFinder extends Thread
             try
             {
                 CurvePosition pos = findMotif(request);
-                System.out.println("[" + DateUtils.now() + "] Motif@" + pos.getPosX() + " x " + pos.getPosY() + " in file " + request.getNumber());
+                System.out.println("[" + DateUtils.now() + "] Motif@" + pos.getPosX() + " x " + pos.getPosY() + " in image " + request.getNumber());
                 synchronized (posSet)
                 {
                     posSet.add(pos);

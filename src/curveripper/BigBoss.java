@@ -25,11 +25,15 @@ public class BigBoss
 {
     private int aliveMf = 0;
     private SortedSet<CurvePosition> positionSet;
+    private int offsetX;
+    private int offsetY;
 
-    public synchronized void giveOrders(String motifUrl, String filePattern, String fileExtension, String srcFolder, int nbSrcFiles, int nbFinders)
+    public synchronized void giveOrders(String motifUrl, String filePattern, String fileExtension, String srcFolder, int nbSrcFiles, int nbFinders, int offsetX, int offsetY)
     {
         BufferedImage motif = null;
         RequestQueue queue = new RequestQueue();
+        this.offsetX = offsetX;
+        this.offsetY = offsetY;
 
         positionSet = Collections.synchronizedSortedSet(new TreeSet<CurvePosition>(new CurvePosition()));
 
@@ -72,6 +76,7 @@ public class BigBoss
         if (aliveMf == 0)
         {
             displayResults();
+            generateJavascript();
         }
     }
 
@@ -89,6 +94,42 @@ public class BigBoss
 
     }
 
+    private void generateJavascript()
+    {
+        System.out.println("// -----------------------------------------------------;");
+        System.out.println("// Generated Javascript by CurveRipper");
+        System.out.println("// -----------------------------------------------------;");
+        System.out.println("var spritePosX = new Array(");
+
+        synchronized (positionSet)
+        {
+            Iterator<CurvePosition> i = positionSet.iterator(); // Must be in synchronized block
+            while (i.hasNext())
+            {
+                CurvePosition cp = i.next();
+                System.out.print(cp.getPosX() - offsetX + ", ");
+            }
+        }
+        System.out.println("\n);");
+        System.out.println("var spritePosY = new Array(");
+
+        synchronized (positionSet)
+        {
+            Iterator<CurvePosition> i = positionSet.iterator(); // Must be in synchronized block
+            while (i.hasNext())
+            {
+                CurvePosition cp = i.next();
+                System.out.print(cp.getPosY() - offsetY + ", ");
+            }
+        }
+        System.out.println("\n);");
+
+        System.out.println("// -----------------------------------------------------;");
+        System.out.println("// End of Generated Javascript by CurveRipper");
+        System.out.println("// -----------------------------------------------------;");
+
+    }
+
     /**
      * @param args the command line arguments
      */
@@ -100,6 +141,8 @@ public class BigBoss
         String srcFolder = "D:\\Apps\\STEem\\screenshots\\";
         int nbFiles = 557;
         int nbFinders = 16;
+        int offsetX = 0;
+        int offsetY = 0;
 
         try
         {
@@ -107,12 +150,14 @@ public class BigBoss
             OptionParser parser = new OptionParser()
             {
                 {
-                    acceptsAll(asList("m", "motif"), "image motif").withRequiredArg().ofType(String.class).describedAs("Motif image file");
-                    acceptsAll(asList("p", "pattern"), "source image naming pattern").withRequiredArg().ofType(String.class).describedAs("ex CUDDLY_P_ ");
-                    acceptsAll(asList("e", "extension"), "source images extension").withRequiredArg().ofType(String.class);
-                    acceptsAll(asList("s", "sourcefolder"), "source images folder").withRequiredArg().ofType(String.class);
-                    acceptsAll(asList("n", "number"), "source image number").withRequiredArg().ofType(Integer.class);
-                    acceptsAll(asList("t", "threadsFinder"), "number of fidner threads").withOptionalArg().ofType(Integer.class).defaultsTo(16);
+                    acceptsAll(asList("m", "motif"), "image motif").withRequiredArg().ofType(String.class).describedAs("motif.bmp");
+                    acceptsAll(asList("p", "pattern"), "source image naming pattern").withRequiredArg().ofType(String.class).describedAs("CUDDLY_P_");
+                    acceptsAll(asList("e", "extension"), "source images extension").withRequiredArg().ofType(String.class).describedAs("bmp");
+                    acceptsAll(asList("s", "sourcefolder"), "source images folder").withRequiredArg().ofType(String.class).describedAs("D:/STEEM/snapshots/");
+                    acceptsAll(asList("n", "number"), "source image number").withRequiredArg().ofType(Integer.class).describedAs("200");
+                    acceptsAll(asList("t", "threadsFinder"), "number of fidner threads").withOptionalArg().ofType(Integer.class).defaultsTo(16).describedAs("16");;
+                    acceptsAll(asList("x", "motifOffsetX"), "Motif X offset in sprite").withRequiredArg().ofType(Integer.class).describedAs("10");
+                    acceptsAll(asList("y", "motifOffsetY"), "Motif Y offset in sprite").withRequiredArg().ofType(Integer.class).describedAs("6");
                     acceptsAll(asList("h", "?"), "(opt) show help");
                 }
             };
@@ -130,9 +175,17 @@ public class BigBoss
                 else throw new Exception("pattern argument is missing");
                 if (options.has("extension"))       fileExt = (String) options.valueOf("extension");
                 else throw new Exception("extension argument is missing");
-                if (options.has("sourcefolder"))    srcFolder = (String) options.valueOf("sourcefolder");
+                if (options.has("sourcefolder"))
+                {
+                    srcFolder = (String) options.valueOf("sourcefolder");
+                    if(!srcFolder.endsWith("/")) srcFolder.concat("/");
+                }
                 else throw new Exception("sourcefolder argument is missing");
                 if (options.has("number"))          nbFiles = (Integer) options.valueOf("number");
+                else throw new Exception("number argument is missing");
+                if (options.has("motifOffsetX"))          offsetX = (Integer) options.valueOf("motifOffsetX");
+                else throw new Exception("number argument is missing");
+                if (options.has("motifOffsetY"))          offsetY = (Integer) options.valueOf("motifOffsetY");
                 else throw new Exception("number argument is missing");
                 if (options.has("threadsFinder"))   nbFinders = (Integer) options.valueOf("threadsFinder");
             }
@@ -147,20 +200,9 @@ public class BigBoss
         {
             System.err.println(ex.getMessage());
         }
-        catch(OptionException ex2)
-        {
-            ex2.printStackTrace();
-        }
 
         BigBoss boss = new BigBoss();
-        boss.giveOrders(motifUrl, pattern, fileExt, srcFolder, nbFiles, nbFinders);
-    }
-
-    public static void manageArgs(String[] args)
-    {
-
-        
-
+        boss.giveOrders(motifUrl, pattern, fileExt, srcFolder, nbFiles, nbFinders, offsetX, offsetY);
     }
 
     static String intToString(int num, int digits)

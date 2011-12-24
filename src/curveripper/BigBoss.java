@@ -28,7 +28,7 @@ public class BigBoss
     private int offsetX;
     private int offsetY;
 
-    public synchronized void giveOrders(String motifUrl, String filePattern, String fileExtension, String srcFolder, int nbSrcFiles, int nbFinders, int offsetX, int offsetY)
+    public synchronized void giveOrders(String motifUrl, String filePattern, String fileExtension, String srcFolder, int nbSrcFiles, int nbFinders, int offsetX, int offsetY, int startOffset)
     {
         BufferedImage motif = null;
         RequestQueue queue = new RequestQueue();
@@ -47,7 +47,7 @@ public class BigBoss
             System.out.println("Fill the request queue");
             for (int i = 0; i < nbSrcFiles; i++)
             {
-                Request request = new Request(srcFolder + filePattern + intToString(i + 1, 3) + "." + fileExtension, i + 1);
+                Request request = new Request(srcFolder + filePattern + intToString(i + startOffset, 3) + "." + fileExtension, i + 1);
                 queue.pushRequest(request);
             }
             System.out.println("Queue has " + queue.getRequestNumber() + " request waiting");
@@ -143,6 +143,7 @@ public class BigBoss
         int nbFinders = 16;
         int offsetX = 0;
         int offsetY = 0;
+        int startOffset = 1;
 
         try
         {
@@ -158,7 +159,9 @@ public class BigBoss
                     acceptsAll(asList("t", "threadsFinder"), "number of fidner threads").withOptionalArg().ofType(Integer.class).defaultsTo(16).describedAs("16");;
                     acceptsAll(asList("x", "motifOffsetX"), "Motif X offset in sprite").withRequiredArg().ofType(Integer.class).describedAs("10");
                     acceptsAll(asList("y", "motifOffsetY"), "Motif Y offset in sprite").withRequiredArg().ofType(Integer.class).describedAs("6");
+                    acceptsAll(asList("st", "startOffset"), "source image start number").withOptionalArg().ofType(Integer.class).describedAs("1").defaultsTo(1);
                     acceptsAll(asList("h", "?"), "(opt) show help");
+
                 }
             };
             try
@@ -188,6 +191,7 @@ public class BigBoss
                 if (options.has("motifOffsetY"))          offsetY = (Integer) options.valueOf("motifOffsetY");
                 else throw new Exception("number argument is missing");
                 if (options.has("threadsFinder"))   nbFinders = (Integer) options.valueOf("threadsFinder");
+                if (options.has("startOffset"))   startOffset = (Integer) options.valueOf("startOffset");
             }
             catch (Exception ex)
             {
@@ -202,7 +206,7 @@ public class BigBoss
         }
 
         BigBoss boss = new BigBoss();
-        boss.giveOrders(motifUrl, pattern, fileExt, srcFolder, nbFiles, nbFinders, offsetX, offsetY);
+        boss.giveOrders(motifUrl, pattern, fileExt, srcFolder, nbFiles, nbFinders, offsetX, offsetY, startOffset);
     }
 
     static String intToString(int num, int digits)
